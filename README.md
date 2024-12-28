@@ -4,7 +4,7 @@
 
 ---
 
-A comprehensive media server setup using Docker Compose, featuring Plex and various supporting services for content management, automation, and monitoring.
+A comprehensive media server setup using Docker Compose, featuring Plex and various supporting services for content management, automation, and monitoring. Offers a minimal but fully functional setup, with the ability to add reverse proxies. 
 
 ![image](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 ![image](https://img.shields.io/badge/Plex-EBAF00?style=for-the-badge&logo=plex&logoColor=white)
@@ -16,20 +16,22 @@ A comprehensive media server setup using Docker Compose, featuring Plex and vari
 ## 🚀 Services
 
 ### Core Services
-- **[Plex](https://github.com/linuxserver/docker-plex/)**: Media server (port: 32400)
-- **[Overseerr](https://github.com/linuxserver/docker-overseerr)**: Media request management system (port: 5055)
-- **[Tautulli](https://github.com/linuxserver/docker-tautulli)**: Plex monitoring and statistics (port: 8181) *optional*
-- **[Organizr](https://github.com/causefx/Organizr)**: Web-based dashboard (port: 9983) *optional*
-- **[FileBrowser](https://github.com/filebrowser/filebrowser)**: Web file management interface (port: 8080) *optional*
+- **[Plex](https://github.com/linuxserver/docker-plex/)**: Media server 
+- **[Overseerr](https://github.com/linuxserver/docker-overseerr)**: Media request management system 
+- **[Tautulli](https://github.com/linuxserver/docker-tautulli)**: Plex monitoring and statistics  *optional*
+- **[Organizr](https://github.com/causefx/Organizr)**: Web-based dashboard  *optional*
+- **[FileBrowser](https://github.com/filebrowser/filebrowser)**: Web file management interface  *optional*
 
 ### Web & Network Services
-- **[Nginx Proxy Manager](https://hub.docker.com/r/jc21/nginx-proxy-manager)**: Reverse proxy and SSL management (ports: 80, 81, 443) *optional*
-- **[Transmission + OpenVPN](https://github.com/haugene/docker-transmission-openvpn/)**: Torrent client with VPN integration (port: 9091)
+- **[Nginx Proxy Manager](https://hub.docker.com/r/jc21/nginx-proxy-manager)**: Reverse proxy and SSL management *optional*
+- **[Transmission + OpenVPN](https://github.com/haugene/docker-transmission-openvpn/)**: Torrent client with VPN integration 
 
 ### Media Management
-- **[Radarr](https://github.com/linuxserver/docker-radarr)**: Movie collection manager (port: 7878) 
-- **[Sonarr](https://github.com/linuxserver/docker-sonarr)**: TV series collection manager (port: 8989)
-- **[Prowlarr](https://github.com/linuxserver/docker-prowlarr)**: Indexer manager (port: 9696)
+- **[Radarr](https://github.com/linuxserver/docker-radarr)**: Movie collection manager 
+- **[Sonarr](https://github.com/linuxserver/docker-sonarr)**: TV series collection manager 
+- **[Prowlarr](https://github.com/linuxserver/docker-prowlarr)**: Indexer manager 
+
+> If you don't want to use any of the optional services, you can remove them from the `docker-compose.yml` file.
 
 ## 🛠️ Setup Instructions
 
@@ -58,27 +60,25 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
    mkdir -p data data/downloads /data/media /data/media/movies /data/media/tv data/downloads/complete data/downloads/incomplete data/downloads/watch config
    ```
 
-> **Note:** This setup assumes that all the final data is stored in the same directory as `docker-compose.yml`. If you want more space/add more drives, you need to add them to the relevant `volumes` section for each service.
+> This setup assumes that all the final data is stored in the same directory as `docker-compose.yml`. If you want more space/add more drives, you need to add them to the relevant `volumes` section for each service.
 
-### 🔒 Environment Variables
+4. In the `.env` file, you need to set the following variables:
+   - `TZ`: Your timezone (default: `America/New_York`)
+   - `PUID`: User ID (default: 1000)
+   - `PGID`: Group ID (default: 1000)
+   - `OPENVPN_PROVIDER`: VPN provider (default: `custom`)
+   - `OPENVPN_CONFIG`: OpenVPN configuration file
+   - `OPENVPN_USERNAME`: OpenVPN username
+   - `OPENVPN_PASSWORD`: OpenVPN password
 
-In the `.env` file, you need to set the following variables:
+> I use ProtonVPN as my provider, but the stack is compatible with any other VPN provider — you just need the OpenVPN configuration file and the username and password. Check [this page](https://haugene.github.io/docker-transmission-openvpn/) from the `docker-transmission-openvpn` project for more information on specific VPN provider configuration — some need custom `.sh` scripts and directories.
 
-- `TZ`: Your timezone (default: `America/New_York`)
-- `PUID`: User ID (default: 1000)
-- `PGID`: Group ID (default: 1000)
-- `OPENVPN_PROVIDER`: VPN provider (default: `custom`)
-- `OPENVPN_CONFIG`: OpenVPN configuration file
-- `OPENVPN_USERNAME`: OpenVPN username
-- `OPENVPN_PASSWORD`: OpenVPN password
-
-### 🔑 VPN
-
-I use ProtonVPN as my provider, but the stack is compatible with any other VPN provider — you just need the OpenVPN configuration file and the username and password. Check [this page](https://haugene.github.io/docker-transmission-openvpn/) from the `docker-transmission-openvpn` project for more information on specific VPN provider configuration — some need custom `.sh` scripts and directories.
+5. Run `docker compose up -d` to start the stack.
+6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr).
 
 ### 🌐 Ngnix
 
-> **Note:** This is optional, and only if you want to be able to access the services from outside your local network (I personally have Overseerr, Tatutulli, and Organizr accessible). You'll need a static IP. 
+> **Note:** This is optional, and only if you want to be able to access the services from outside your local network (I personally have Overseerr, Tatutulli, and Organizr accessible). You'll need a static IP and forward the necessary ngnix ports. 
 
 1. Create an A record in your DNS provider pointing to your server's public IP address, with `overseerr` as the name.
 2. In Ngnix, go to Hosts -> Proxy Hosts -> Add Proxy Host. Fill in the following: 
@@ -88,6 +88,7 @@ I use ProtonVPN as my provider, but the stack is compatible with any other VPN p
    4. Forward Port: `5055`
    5. Enable `Block Common Exploits` and `Websockets Support`
    6. Under SSL, select `Request New SSL Certificate`, `Force SSL`, and `HTTP/2 Support`.
+3. **Be sure to secure any services you forward outside your network!** 
 
 ### 🛠️ App Setup
 
@@ -112,3 +113,9 @@ You'll need to do more configuration in the apps themselves to make sure that ev
 | Overseerr | [5055](http://localhost:5055) |
 | Tautulli | [8181](http://localhost:8181) |
 | Prowlarr | [9696](http://localhost:9696) |
+
+## ✅ TODO
+
+- [ ] Add a script to help users onboard (e.g. directories, what images they want)
+- [ ] Add more services to support the stack (Bazarr, Recyclarr, Whisparr, Notifiarr)
+- [ ] Option for qBittorrent
