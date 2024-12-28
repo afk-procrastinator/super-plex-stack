@@ -1,0 +1,187 @@
+services:
+
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./config/npm/data:/data
+      - ./config/npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - media-network
+
+  organizr:
+    image: organizr/organizr
+    container_name: organizr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./config/organizr:/config
+    ports:
+      - 9983:80
+    restart: unless-stopped
+
+  filebrowser:
+    image: hurlenko/filebrowser:latest
+    user: "1000:1000"
+    container_name: filebrowser
+    volumes:
+      - ./config/filebrowser:/config
+      - ./data:/data
+    ports:
+      - 8081:8081
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - FB_LOG_LEVEL=debug
+      - FB_LOG_FILE=/config/filebrowser.log
+    restart: always
+    networks:
+      - media-network
+
+  transmission-openvpn:
+    container_name: transmission
+    image: haugene/transmission-openvpn
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ./protonvpn:/etc/openvpn/custom
+      - ./config/transmission:/config
+      - ./data:/data
+    environment:
+      - OPENVPN_PROVIDER=${OPENVPN_PROVIDER}
+      - OPENVPN_CONFIG=${OPENVPN_CONFIG}
+      - OPENVPN_USERNAME=${OPENVPN_USERNAME}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - LOCAL_NETWORK=10.0.0.0/24,172.0.0.0/8 # Update as needed to local network
+      - TRANSMISSION_DOWNLOAD_DIR=/data/downloads/complete
+      - TRANSMISSION_INCOMPLETE_DIR=/data/downloads/incomplete
+      - TRANSMISSION_WATCH_DIR=/data/downloads/watch
+      - TRANSMISSION_WEB_UI=transmissionic
+      - TRANSMISSION_RPC_HOST_WHITELIST="localhost"
+      - TRANSMISSION_RPC_HOST_WHITELIST_ENABLED=true
+      - TRANSMISSION_RPC_URL=/transmission/
+      - TRANSMISSION_WEB_HOME=/transmission/web/
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+    ports:
+      - 9091:9091
+    networks:
+      - media-network
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+      - TZ=${TZ}
+      - URL_BASE=/radarr
+    volumes:
+      - ./config/radarr:/config
+      - ./data:/data
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+      - TZ=${TZ}
+      - URL_BASE=/sonarr
+    volumes:
+      - ./config/sonarr:/config
+      - ./data:/data
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - VERSION=docker
+      - UMASK=002
+      - TZ=${TZ}
+    volumes:
+      - ./config/plex:/config
+      - ./data:/data
+    restart: unless-stopped
+
+  overseerr:
+    image: sctx/overseerr:latest
+    container_name: overseerr
+    networks:
+      - media-network
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=002
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+      - PORT=5055
+      - URL_BASE=/overseerr
+    ports:
+      - 5055:5055
+    volumes:
+      - ./config/overseerr:/app/config
+    restart: unless-stopped
+
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - URL_BASE=/tautulli
+    volumes:
+      - ./config/tautulli:/config
+    networks:
+      - media-network
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - URL_BASE=/prowlarr
+    volumes:
+      - ./config/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+networks:
+  media-network:
+    driver: bridge
