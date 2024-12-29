@@ -10,30 +10,30 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - VERSION=docker
-      - UMASK=002
+      - UMASK=${UMASK}
       - TZ=${TZ}
     volumes:
-      - ./config/plex:/config
-      - ./data:/data
+      - ${CONFIG_PATH}/plex:/config
+      - ${DATA_PATH}:/data
     restart: unless-stopped
 
-  overseerr:
+  overseerr: # OPTIONAL
     image: sctx/overseerr:latest
     container_name: overseerr
     network_mode: "service:gluetun"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - UMASK=002
+      - UMASK=${UMASK}
       - LOG_LEVEL=debug
       - TZ=${TZ}
       - PORT=5055
       - URL_BASE=/overseerr
     volumes:
-      - ./config/overseerr:/app/config
+      - ${CONFIG_PATH}/overseerr:/app/config
     restart: unless-stopped
 
-  tautulli:
+  tautulli: # OPTIONAL
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
     environment:
@@ -42,14 +42,14 @@ services:
       - TZ=${TZ}
       - URL_BASE=/tautulli
     volumes:
-      - ./config/tautulli:/config
+      - ${CONFIG_PATH}/tautulli:/config
     networks:
       - media-network
     ports:
       - 8181:8181
     restart: unless-stopped
 
-  organizr:
+  organizr: # OPTIONAL
     image: organizr/organizr
     container_name: organizr
     environment:
@@ -57,18 +57,18 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./config/organizr:/config
+      - ${CONFIG_PATH}/organizr:/config
     ports:
       - 9983:80
     restart: unless-stopped
 
-  filebrowser:
+  filebrowser: # OPTIONAL
     image: hurlenko/filebrowser:latest
     user: "1000:1000"
     container_name: filebrowser
     volumes:
-      - ./config/filebrowser:/config
-      - ./data:/data
+      - ${CONFIG_PATH}/filebrowser:/config
+      - ${DATA_PATH}:/data
     ports:
       - 8081:8081
     environment:
@@ -81,7 +81,7 @@ services:
     networks:
       - media-network
 
-  dozzle:
+  dozzle: # OPTIONAL
     image: amir20/dozzle:latest
     container_name: dozzle
     volumes:
@@ -91,7 +91,7 @@ services:
     restart: unless-stopped
 
 # Networking
-  nginx-proxy-manager:
+  nginx-proxy-manager: # OPTIONAL
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: nginx
     restart: unless-stopped
@@ -102,8 +102,8 @@ services:
     environment:
       - TZ=${TZ}
     volumes:
-      - ./config/npm/data:/data
-      - ./config/npm/letsencrypt:/etc/letsencrypt
+      - ${CONFIG_PATH}/npm/data:/data
+      - ${CONFIG_PATH}/npm/letsencrypt:/etc/letsencrypt
     networks:
       - media-network
 
@@ -116,12 +116,9 @@ services:
       - TZ=${TZ}
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
-      # Set explicit username/password
-      - WEBUI_USERNAME=admin
-      - WEBUI_PASSWORD=adminadmin123
     volumes:
-      - ./config/qbittorrent:/config
-      - ./data:/data
+      - ${CONFIG_PATH}/qbittorrent:/config
+      - ${DATA_PATH}:/data
     network_mode: "service:gluetun"
     restart: unless-stopped
 
@@ -132,18 +129,12 @@ services:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
-    ports:
-      # VPN HTTP control server
+    ports: # Ports for all services that access the gluetun VPN
       - 8000:8000
-      # Overseerr
       - 5055:5055
-      # Radarr
       - 7878:7878
-      # Sonarr
       - 8989:8989
-      # Prowlarr
       - 9696:9696
-      # qBittorrent
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
@@ -152,18 +143,17 @@ services:
       - PGID=${PGID}
       - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=openvpn
-      # Username must have +pmp suffix for port forwarding
       - OPENVPN_USER=${OPENVPN_USERNAME}+pmp
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
       - SERVER_COUNTRIES='United States'
       - VPN_PORT_FORWARDING=on
       - PORT_FORWARD_ONLY=on
     volumes:
-      - ./config/gluetun:/gluetun
+      - ${CONFIG_PATH}/gluetun:/gluetun
     restart: unless-stopped
     networks:
       media-network:
-        aliases:
+        aliases: # Aliases for all services that access the gluetun VPN
           - overseerr
           - radarr
           - sonarr
@@ -181,12 +171,12 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - UMASK=002
+      - UMASK=${UMASK}
       - TZ=${TZ}
       - URL_BASE=/radarr
     volumes:
-      - ./config/radarr:/config
-      - ./data:/data
+      - ${CONFIG_PATH}/radarr:/config
+      - ${DATA_PATH}:/data
     restart: unless-stopped
 
   sonarr:
@@ -196,12 +186,12 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - UMASK=002
+      - UMASK=${UMASK}
       - TZ=${TZ}
       - URL_BASE=/sonarr
     volumes:
-      - ./config/sonarr:/config
-      - ./data:/data
+      - ${CONFIG_PATH}/sonarr:/config
+      - ${DATA_PATH}:/data
     restart: unless-stopped
 
   prowlarr:
@@ -214,10 +204,10 @@ services:
       - TZ=${TZ}
       - URL_BASE=/prowlarr
     volumes:
-      - ./config/prowlarr:/config
+      - ${CONFIG_PATH}/prowlarr:/config
     restart: unless-stopped
 
-  bazarr:
+  bazarr: # OPTIONAL
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
     environment:
@@ -225,9 +215,9 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./config/bazarr:/config
-      - ./data/movies:/movies
-      - ./data/tv:/tv
+      - ${CONFIG_PATH}/bazarr:/config
+      - ${DATA_PATH}/movies:/movies
+      - ${DATA_PATH}/tv:/tv
     ports:
       - 6767:6767
     restart: unless-stopped

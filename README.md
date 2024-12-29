@@ -78,17 +78,19 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
 
 ### 🌐 Ngnix
 
-> **Note:** This is optional, and only if you want to be able to access the services from outside your local network (I personally have Overseerr, Tatutulli, and Organizr accessible). You'll need a static IP and forward the necessary ngnix ports. 
+> **Note:** This is optional, and only if you want to be able to access the services from outside your local network. You'll need a static IP and forward the necessary ngnix ports. 
 
 1. Create an A record in your DNS provider pointing to your server's public IP address, with `overseerr` as the name.
 2. In Ngnix, go to Hosts -> Proxy Hosts -> Add Proxy Host. Fill in the following: 
    1. Domain Names: `overseerr.mydomain.com`
    2. Scheme: `http`
-   3. Forward Hostname/IP: `overseerr`
-   4. Forward Port: `5055`
+   3. Forward Hostname/IP: `gluetun` (for VPN-protected services) or service name (for others)
+   4. Forward Port: `5055` (use the service's port)
    5. Enable `Block Common Exploits` and `Websockets Support`
    6. Under SSL, select `Request New SSL Certificate`, `Force SSL`, and `HTTP/2 Support`.
 3. **Be sure to secure any services you forward outside your network!** 
+
+> **Important:** For services running through the VPN (Overseerr, Radarr, Sonarr, Prowlarr), use `gluetun` as the Forward Hostname/IP in Nginx Proxy Manager. These services are accessed through the gluetun container.
 
 ### 🛠️ App Setup
 
