@@ -32,9 +32,11 @@ A comprehensive media server setup using Docker Compose, featuring Plex and vari
 - **[Radarr](https://github.com/linuxserver/docker-radarr)**: Movie collection manager 
 - **[Sonarr](https://github.com/linuxserver/docker-sonarr)**: TV series collection manager 
 - **[Prowlarr](https://github.com/linuxserver/docker-prowlarr)**: Indexer manager 
-- **[Bazarr](https://github.com/linuxserver/docker-bazarr)**: Subtitle manager
+- **[Bazarr](https://github.com/linuxserver/docker-bazarr)**: Subtitle manager *optional*
 
 > If you don't want to use any of the optional services, you can remove them from the `docker-compose.yml` file.
+
+> :warning: **Warning:** This stack will not work out of the box. You'll need to do more configuration in the apps themselves. See the App Setup section below for more information. 
 
 ## 🛠️ Setup Instructions
 
@@ -75,7 +77,7 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
 > The stack uses Gluetun for VPN connectivity, which I have preconfigured for ProtonVPN but supports many other providers. You can see the full list of providers and the documentation for how to configure them [here](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers). 
 
 5. Run `docker compose up -d` to start the stack.
-6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr). See the [App Setup](#app-setup) section for more information.
+6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr). See the App Setup section for more information, and use documentation for each app to finish setting them up.
 
 ### 🌐 Ngnix
 
@@ -103,6 +105,8 @@ You'll need to do more configuration in the apps themselves to make sure that ev
 - [Ngnix Documentation](https://nginxproxymanager.com/)
 - [Gluetun Documentation for providers](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers)
 
+The flow I find best is (in order of what to get working first): `Gluetun -> qBittorrent -> Prowlarr -> Sonarr/Radarr -> Plex`. Everything else can come after that. 
+
 ## 🌐 Default Local Access
 
 | Service | URL | Notes |
@@ -120,7 +124,7 @@ You'll need to do more configuration in the apps themselves to make sure that ev
 | Bazarr | [6767](http://localhost:6767) | |
 | Dozzle | [9999](http://localhost:9999) | |
 
-> Services marked as "VPN Protected" run through the Gluetun VPN container, meaning:
+> 🔐 Services marked as "VPN Protected" run through the Gluetun VPN container, meaning:
 > - All their network traffic is routed through your VPN connection
 > - They're only accessible through ports exposed by the Gluetun container
 > - This protects these services from being directly exposed to the internet (aka they run through the VPN)
@@ -130,4 +134,4 @@ You'll need to do more configuration in the apps themselves to make sure that ev
 
 - [ ] Add a script to help users onboard (e.g. directories, what images they want)
 - [ ] Add more services to support the stack (Recyclarr, Whisparr, Notifiarr)
-- [ ] Add documentation for Gluetun VPN configuration with other providers
+- [x] Add documentation for Gluetun VPN configuration with other providers
