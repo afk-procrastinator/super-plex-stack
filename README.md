@@ -75,7 +75,7 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
 > The stack uses Gluetun for VPN connectivity, which I have preconfigured for ProtonVPN but supports many other providers. You can see the full list of providers and the documentation for how to configure them [here](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers). 
 
 5. Run `docker compose up -d` to start the stack.
-6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr). See the [App Setup](#🛠️-app-setup) section for more information.
+6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr). See the [App Setup](#app-setup) section for more information.
 
 ### 🌐 Ngnix
 
