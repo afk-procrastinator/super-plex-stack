@@ -1,8 +1,6 @@
 <div align="center">
 
-# SuperPlex
-
----
+# ⚡ SuperPlex ⚡
 
 A comprehensive media server setup using Docker Compose, featuring Plex and various supporting services for content management, automation, and monitoring. Offers a minimal but fully functional setup, with the ability to add reverse proxies. 
 
