@@ -21,15 +21,18 @@ A comprehensive media server setup using Docker Compose, featuring Plex and vari
 - **[Tautulli](https://github.com/linuxserver/docker-tautulli)**: Plex monitoring and statistics  *optional*
 - **[Organizr](https://github.com/causefx/Organizr)**: Web-based dashboard  *optional*
 - **[FileBrowser](https://github.com/filebrowser/filebrowser)**: Web file management interface  *optional*
+- **[Dozzle](https://github.com/amir20/dozzle)**: Real-time docker log viewer *optional*
 
 ### Web & Network Services
 - **[Nginx Proxy Manager](https://hub.docker.com/r/jc21/nginx-proxy-manager)**: Reverse proxy and SSL management *optional*
-- **[Transmission + OpenVPN](https://github.com/haugene/docker-transmission-openvpn/)**: Torrent client with VPN integration 
+- **[qBittorrent](https://github.com/linuxserver/docker-qbittorrent)**: Torrent client
+- **[Gluetun](https://github.com/qdm12/gluetun)**: VPN client container
 
 ### Media Management
 - **[Radarr](https://github.com/linuxserver/docker-radarr)**: Movie collection manager 
 - **[Sonarr](https://github.com/linuxserver/docker-sonarr)**: TV series collection manager 
 - **[Prowlarr](https://github.com/linuxserver/docker-prowlarr)**: Indexer manager 
+- **[Bazarr](https://github.com/linuxserver/docker-bazarr)**: Subtitle manager
 
 > If you don't want to use any of the optional services, you can remove them from the `docker-compose.yml` file.
 
@@ -66,15 +69,13 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
    - `TZ`: Your timezone (default: `America/New_York`)
    - `PUID`: User ID (default: 1000)
    - `PGID`: Group ID (default: 1000)
-   - `OPENVPN_PROVIDER`: VPN provider (default: `custom`)
-   - `OPENVPN_CONFIG`: OpenVPN configuration file
-   - `OPENVPN_USERNAME`: OpenVPN username
-   - `OPENVPN_PASSWORD`: OpenVPN password
+   - `OPENVPN_USERNAME`: VPN username
+   - `OPENVPN_PASSWORD`: VPN password
 
-> I use ProtonVPN as my provider, but the stack is compatible with any other VPN provider — you just need the OpenVPN configuration file and the username and password. Check [this page](https://haugene.github.io/docker-transmission-openvpn/) from the `docker-transmission-openvpn` project for more information on specific VPN provider configuration — some need custom `.sh` scripts and directories.
+> The stack uses Gluetun for VPN connectivity, which I have preconfigured for ProtonVPN but supports many other providers. You can see the full list of providers and the documentation for how to configure them [here](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers). 
 
 5. Run `docker compose up -d` to start the stack.
-6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr).
+6. Profit! After setting up the apps, of course. Add media via Overseerr (or by manually adding them to Radarr and Sonarr). See the [App Setup](#🛠️-app-setup) section for more information.
 
 ### 🌐 Ngnix
 
@@ -100,24 +101,33 @@ You'll need to do more configuration in the apps themselves to make sure that ev
 - [Servarr Documentation](https://wiki.servarr.com/) — Radarr, Sonarr, Prowlarr
 - [docker-transmission-openvpn Documentation](https://haugene.github.io/docker-transmission-openvpn/)
 - [Ngnix Documentation](https://nginxproxymanager.com/)
+- [Gluetun Documentation for providers](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers)
 
 ## 🌐 Default Local Access
 
-| Service | URL |
-|---------|-----|
-| Nginx Proxy Manager | [81](http://localhost:81) |
-| Organizr | [9983](http://localhost:9983) |
-| Filebrowser | [8081](http://localhost:8081) |
-| Transmission | [9091](http://localhost:9091) |
-| Radarr | [7878](http://localhost:7878) |
-| Sonarr | [8989](http://localhost:8989) |
-| Plex | [32400](http://localhost:32400/web) |
-| Overseerr | [5055](http://localhost:5055) |
-| Tautulli | [8181](http://localhost:8181) |
-| Prowlarr | [9696](http://localhost:9696) |
+| Service | URL | Notes |
+|---------|-----|-------|
+| Nginx Proxy Manager | [81](http://localhost:81) | Admin interface |
+| Organizr | [9983](http://localhost:9983) | |
+| Filebrowser | [8081](http://localhost:8081) | |
+| qBittorrent | [8080](http://localhost:8080) | VPN Protected |
+| Radarr | [7878](http://localhost:7878) | VPN Protected |
+| Sonarr | [8989](http://localhost:8989) | VPN Protected |
+| Plex | [32400](http://localhost:32400/web) | Host Network Mode |
+| Overseerr | [5055](http://localhost:5055) | VPN Protected |
+| Tautulli | [8181](http://localhost:8181) | |
+| Prowlarr | [9696](http://localhost:9696) | VPN Protected |
+| Bazarr | [6767](http://localhost:6767) | |
+| Dozzle | [9999](http://localhost:9999) | |
+
+> Services marked as "VPN Protected" run through the Gluetun VPN container, meaning:
+> - All their network traffic is routed through your VPN connection
+> - They're only accessible through ports exposed by the Gluetun container
+> - This protects these services from being directly exposed to the internet (aka they run through the VPN)
+> - All of these can be accessed via localhost, but you'll need to set up a reverse proxy in Nginx Proxy Manager to access them from outside your network (see the section above).
 
 ## ✅ TODO
 
 - [ ] Add a script to help users onboard (e.g. directories, what images they want)
-- [ ] Add more services to support the stack (Bazarr, Recyclarr, Whisparr, Notifiarr)
-- [ ] Option for qBittorrent
+- [ ] Add more services to support the stack (Recyclarr, Whisparr, Notifiarr)
+- [ ] Add documentation for Gluetun VPN configuration with other providers

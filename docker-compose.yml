@@ -10,7 +10,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - VERSION=docker
-      - UMASK=002
+      - UMASK=${UMASK}
       - TZ=${TZ}
     volumes:
       - ./config/plex:/config
@@ -24,7 +24,7 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - UMASK=002
+      - UMASK=${UMASK}
       - LOG_LEVEL=debug
       - TZ=${TZ}
       - PORT=5055
@@ -147,12 +147,14 @@ services:
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
+      # Readarr
+      - 8787:8787
     environment:
+      ###! These settings will vary with your VPN provider. Check the Gluetun documentation (https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers) for more information. !###
       - PUID=${PUID}
       - PGID=${PGID}
       - VPN_SERVICE_PROVIDER=protonvpn
       - VPN_TYPE=openvpn
-      # Username must have +pmp suffix for port forwarding
       - OPENVPN_USER=${OPENVPN_USERNAME}+pmp
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
       - SERVER_COUNTRIES='United States'
@@ -181,7 +183,7 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - UMASK=002
+      - UMASK=${UMASK}
       - TZ=${TZ}
       - URL_BASE=/radarr
     volumes:
@@ -196,7 +198,7 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
-      - UMASK=002
+      - UMASK=${UMASK}
       - TZ=${TZ}
       - URL_BASE=/sonarr
     volumes:
