@@ -31,6 +31,7 @@ A comprehensive media server setup using Docker Compose, featuring Plex and vari
 - **[Sonarr](https://github.com/linuxserver/docker-sonarr)**: TV series collection manager 
 - **[Prowlarr](https://github.com/linuxserver/docker-prowlarr)**: Indexer manager 
 - **[Bazarr](https://github.com/linuxserver/docker-bazarr)**: Subtitle manager *optional*
+- **[Cleanuperr](https://github.com/flmorg/cleanuperr)**: Download queue management and cleanup tool *optional*
 
 > If you don't want to use any of the optional services, you can remove them from the `docker-compose.yml` file.
 
@@ -42,28 +43,22 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
 
 ### 📁 Directory Structure
 
-1. Clone this repository to your desired location (or just manually make the `docker-compose.yml` file)
-2. Create the following directory structure:
+1. Clone this repository to your desired location (or just manually make the `docker-compose.yml` file). If you make the Docker file manually, you'll also need to make the `config` subdirectory in the same location. 
+2. Create this directory structure wherever you want the *data* to be stored. The top directory can be called whatever you want per your storage system—remember to update the `.env` file, instructions below: 
    ```
    .
-   ├── config/
-   │   └── ...
    ├── data/
    │   ├── downloads/
    │   │   ├── complete/
-   │   │   ├── incomplete/
-   │   │   └── watch/
-   │   └── media/
-   │       ├── movies/
-   │       └── tv/
+   │   │   └── incomplete/
+   │   ├── movies/
+   |   └── tv/
    ```
-
-3. The config files are made automatically when Docker starts up, but you can also run:
+   
+3. Run this command to make all the relevant directories wherever you want the stuff stored, *within* the top directory (per default settings, these would be in the `data` directory):
    ```
-   mkdir -p data data/downloads /data/media /data/media/movies /data/media/tv data/downloads/complete data/downloads/incomplete data/downloads/watch config
+   mkdir -p downloads movies tv downloads/complete downloads/incomplete
    ```
-
-> This setup assumes that all the final data is stored in the same directory as `docker-compose.yml`. If you want more space/add more drives, you need to add them to the relevant `volumes` section for each service.
 
 4. In the `.env` file, you need to set the following variables:
    - `TZ`: Your timezone (default: `America/New_York`)
@@ -71,6 +66,12 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
    - `PGID`: Group ID (default: 1000)
    - `OPENVPN_USERNAME`: VPN username
    - `OPENVPN_PASSWORD`: VPN password
+   - `DATA_ROOT`: Path to your data directory (default puts the data in the same directory as the `docker-compose.yml` file —  `./data`)
+   And, if you're using Cleanuparr: 
+   - `SONARR_API_KEY`: Sonarr API key (from settings)
+   - `RADARR_API_KEY`: Radarr API key (from settings)
+   - `BITTORRENT_USERNAME`: qBittorrent UI username
+   - `BITTORRENT_PASSWORD`: qBittorrent UI password
 
 > The stack uses Gluetun for VPN connectivity, which I have preconfigured for ProtonVPN but supports many other providers. You can see the full list of providers and the documentation for how to configure them [here](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers). 
 
@@ -98,12 +99,36 @@ Make sure you have [Docker](https://www.docker.com/) installed! These instructio
 You'll need to do more configuration in the apps themselves to make sure that everything works. Here are some resources: 
 
 - [TRaSH Guides](https://trash-guides.info/) — Radarr, Sonarr, Prowlarr, Plex
-- [Servarr Documentation](https://wiki.servarr.com/) — Radarr, Sonarr, Prowlarr
-- [docker-transmission-openvpn Documentation](https://haugene.github.io/docker-transmission-openvpn/)
-- [Ngnix Documentation](https://nginxproxymanager.com/)
-- [Gluetun Documentation for providers](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers)
+- [Servarr documentation](https://wiki.servarr.com/) — Radarr, Sonarr, Prowlarr
+- [docker-transmission-openvpn documentation](https://haugene.github.io/docker-transmission-openvpn/)
+- [Ngnix documentation](https://nginxproxymanager.com/)
+- [Gluetun documentation for providers](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers)
+- [Cleanuperr documentation, if you're using it](https://flmorg.github.io/cleanuperr/docs/cleanuperr)
 
 The flow I find best is (in order of what to get working first): `Gluetun -> qBittorrent -> Prowlarr -> Sonarr/Radarr -> Plex`. Everything else can come after that. 
+
+#### Cleanuperr Configuration
+
+Cleanuperr is configured to:
+- Clean up stalled and slow downloads
+- Block malicious content using the official blacklist
+- Manage seeding times and ratios
+- Automatically search for replacements when needed
+
+Key features:
+- Queue Cleaner runs every 5 minutes
+- Content Blocker runs every 5 minutes
+- Download Cleaner runs once per hour
+- Maintains logs in `./config/cleanuperr/logs`
+- Uses `./config/cleanuperr/ignored.txt` for ignored downloads
+
+> **Note:** You'll need to create `./config/data/cleanuperr/ignored.txt` for Cleanuperr to work. 
+
+Required environment variables:
+- `QBITTORRENT_USERNAME`: qBittorrent username
+- `QBITTORRENT_PASSWORD`: qBittorrent password
+- `SONARR_API_KEY`: Sonarr API key
+- `RADARR_API_KEY`: Radarr API key
 
 ## 🌐 Default Local Access
 
@@ -121,6 +146,7 @@ The flow I find best is (in order of what to get working first): `Gluetun -> qBi
 | Prowlarr | [9696](http://localhost:9696) | VPN Protected |
 | Bazarr | [6767](http://localhost:6767) | |
 | Dozzle | [9999](http://localhost:9999) | |
+| Cleanuperr | CLI only | |
 
 > 🔐 Services marked as "VPN Protected" run through the Gluetun VPN container, meaning:
 > - All their network traffic is routed through your VPN connection

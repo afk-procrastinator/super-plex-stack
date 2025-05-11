@@ -14,7 +14,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./config/plex:/config
-      - ./data:/data
+      - ${DATA_ROOT}:/data
     restart: unless-stopped
 
   overseerr:
@@ -68,7 +68,7 @@ services:
     container_name: filebrowser
     volumes:
       - ./config/filebrowser:/config
-      - ./data:/data
+      - ${DATA_ROOT}:/data
     ports:
       - 8081:8081
     environment:
@@ -121,7 +121,7 @@ services:
       - WEBUI_PASSWORD=adminadmin123
     volumes:
       - ./config/qbittorrent:/config
-      - ./data:/data
+      - ${DATA_ROOT}:/data
     network_mode: "service:gluetun"
     restart: unless-stopped
 
@@ -188,7 +188,7 @@ services:
       - URL_BASE=/radarr
     volumes:
       - ./config/radarr:/config
-      - ./data:/data
+      - ${DATA_ROOT}:/data
     restart: unless-stopped
 
   sonarr:
@@ -203,7 +203,7 @@ services:
       - URL_BASE=/sonarr
     volumes:
       - ./config/sonarr:/config
-      - ./data:/data
+      - ${DATA_ROOT}:/data
     restart: unless-stopped
 
   prowlarr:
@@ -228,10 +228,85 @@ services:
       - TZ=${TZ}
     volumes:
       - ./config/bazarr:/config
-      - ./data/movies:/movies
-      - ./data/tv:/tv
+      - ${DATA_ROOT}/movies:/movies
+      - ${DATA_ROOT}/tv:/tv
     ports:
       - 6767:6767
+    restart: unless-stopped
+
+  cleanuperr:
+    image: ghcr.io/flmorg/cleanuperr:latest
+    container_name: cleanuperr
+    network_mode: "service:gluetun"
+    environment:
+      # General settings
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - LOGGING__LOGLEVEL=Information
+      - LOGGING__ENHANCED=true
+      
+      # Download client settings
+      - DOWNLOAD_CLIENT=qBittorrent
+      - QBITTORRENT__URL=http://localhost:8080
+      - QBITTORRENT__USERNAME=${QBITTORRENT_USERNAME}
+      - QBITTORRENT__PASSWORD=${QBITTORRENT_PASSWORD}
+      
+      # Queue Cleaner settings
+      - QUEUECLEANER__ENABLED=true
+      - QUEUECLEANER__RUNSEQUENTIALLY=true
+      - QUEUECLEANER__IMPORT_FAILED_MAX_STRIKES=3
+      - QUEUECLEANER__STALLED_MAX_STRIKES=3
+      - QUEUECLEANER__STALLED_RESET_STRIKES_ON_PROGRESS=true
+      - QUEUECLEANER__SLOW_MAX_STRIKES=3
+      - QUEUECLEANER__SLOW_RESET_STRIKES_ON_PROGRESS=true
+      - QUEUECLEANER__SLOW_MIN_SPEED=1MB
+      - QUEUECLEANER__SLOW_MAX_TIME=20
+      - QUEUECLEANER__SLOW_IGNORE_ABOVE_SIZE=60GB
+      
+      # Content Blocker settings
+      - CONTENTBLOCKER__ENABLED=true
+      - CONTENTBLOCKER__IGNORE_PRIVATE=false
+      - CONTENTBLOCKER__DELETE_PRIVATE=false
+      
+      # Download Cleaner settings
+      - DOWNLOADCLEANER__ENABLED=true
+      - DOWNLOADCLEANER__DELETE_PRIVATE=false
+      - DOWNLOADCLEANER__CATEGORIES__0__NAME=tv-sonarr
+      - DOWNLOADCLEANER__CATEGORIES__0__MAX_RATIO=1
+      - DOWNLOADCLEANER__CATEGORIES__0__MIN_SEED_TIME=0
+      - DOWNLOADCLEANER__CATEGORIES__0__MAX_SEED_TIME=240
+      - DOWNLOADCLEANER__CATEGORIES__1__NAME=radarr
+      - DOWNLOADCLEANER__CATEGORIES__1__MAX_RATIO=1
+      - DOWNLOADCLEANER__CATEGORIES__1__MIN_SEED_TIME=0
+      - DOWNLOADCLEANER__CATEGORIES__1__MAX_SEED_TIME=240
+      
+      # Sonarr settings
+      - SONARR__ENABLED=true
+      - SONARR__INSTANCES__0__URL=http://localhost:8989
+      - SONARR__INSTANCES__0__APIKEY=${SONARR_API_KEY}
+      - SONARR__BLOCK__TYPE=blacklist
+      - SONARR__BLOCK__PATH=https://raw.githubusercontent.com/flmorg/cleanuperr/main/blacklist
+      
+      # Radarr settings
+      - RADARR__ENABLED=true
+      - RADARR__INSTANCES__0__URL=http://localhost:7878
+      - RADARR__INSTANCES__0__APIKEY=${RADARR_API_KEY}
+      - RADARR__BLOCK__TYPE=blacklist
+      - RADARR__BLOCK__PATH=https://raw.githubusercontent.com/flmorg/cleanuperr/main/blacklist
+      
+      # Search settings
+      - SEARCH_ENABLED=true
+      - SEARCH_DELAY=30
+      
+      # Trigger settings
+      - TRIGGERS__QUEUECLEANER=0 0/5 * * * ?
+      - TRIGGERS__CONTENTBLOCKER=0 0/5 * * * ?
+      - TRIGGERS__DOWNLOADCLEANER=0 0 * * * ?
+    volumes:
+      - ./config/cleanuperr:/config
+      - ./config/cleanuperr/logs:/var/logs
+      - ./config/cleanuperr/ignored.txt:/ignored.txt
     restart: unless-stopped
 
 networks:
